@@ -37,6 +37,47 @@ The original `enunciado.docx` file will remain local and is listed in `.gitignor
 - **Changed:** The original assistant behavior attempted to implement the complete project automatically. The process was changed to one microtask at a time, with the developer writing the implementation and the assistant providing guidance and review.
 - **Rejected:** Automatic end-to-end implementation, because it would undermine the primary goal of learning how every part of the system works.
 
+## 2026-08-05 - Split local product and cloud deployment milestones
+
+### Context
+
+The original roadmap treated the local application, AWS deployment, production operations, and a single technical article as one delivery. The developer is learning Go, web development, React, and Docker from a beginner level. Adding AWS at the same time would mix product behavior, packaging, distributed infrastructure, security, and cost management into one learning cycle.
+
+The project can already provide portfolio value as a complete, tested, and reproducible Docker Compose application. Cloud deployment is valuable, but it answers a different question: how an existing local architecture should evolve for a public production environment.
+
+### Decision
+
+The roadmap is divided into two explicit milestones:
+
+1. **Milestone 1 - Local Product:** deliver the full autocomplete system with Go, GraphQL, React, Docker Compose, CI, documentation, release `v1.0.0`, and an English article focused on the product and its local architecture.
+2. **Milestone 2 - Cloud Deployment:** adapt the stable application to AWS, add continuous deployment and operations, publish release `v2.0.0`, and write a second English article focused on the cloud evolution.
+
+Milestone 1 is considered complete without a public URL. The GitHub repository will provide a one-command Docker Compose workflow, screenshots or a GIF, tests, and troubleshooting instructions. Milestone 2 starts only after the first release and article are complete.
+
+The application core will still be designed for future cloud deployment. Business logic must not depend on Docker, HTTP frameworks, or AWS SDKs. Services will remain stateless, configuration will come from the environment, and transport-specific behavior will be isolated behind interfaces.
+
+### Alternatives considered
+
+- **Keep one milestone and one article:** rejected because the scope would delay feedback, combine too many new concepts, and make the article less focused.
+- **Deploy to AWS before completing Docker:** rejected because infrastructure would make application defects harder to distinguish from deployment defects.
+- **Remove cloud deployment permanently:** rejected because AWS remains valuable portfolio material once the local system is stable and understood.
+- **Use a managed hosting platform for the first release:** deferred because the selected learning goal is to understand packaging with Docker first and AWS architecture later.
+
+### Consequences
+
+- The first release becomes achievable sooner and can be reproduced without an AWS account or ongoing cost.
+- The first article can focus deeply on algorithms, APIs, frontend behavior, testing, and Docker.
+- The second article gains a concrete before-and-after architecture comparison instead of presenting AWS as isolated configuration.
+- A public live demo will not exist until Milestone 2; the first release will rely on repository documentation and visual evidence.
+- Interfaces and configuration boundaries must be maintained from the beginning so the later AWS adapters do not require rewriting the core.
+
+### AI usage
+
+- **Asked:** Evaluate whether the project should first ship end-to-end with Docker and defer AWS to a second article and milestone.
+- **Accepted:** The recommendation to separate local product development from cloud deployment and keep CI in the first milestone.
+- **Changed:** The original plan used one release and one article; it now defines local `v1.0.0` and cloud `v2.0.0` with separate articles.
+- **Rejected:** Treating AWS as a requirement for the first portfolio release.
+
 ## Decision record template
 
 Copy this section for future decisions that materially affect implementation or architecture.
