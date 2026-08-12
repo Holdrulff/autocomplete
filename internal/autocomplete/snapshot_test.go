@@ -42,7 +42,11 @@ func TestSnapshotDecoding(t *testing.T) {
 		t.Errorf("tag name = %q; want %q", gotName, wantName)
 	}
 
-	if gotScore, wantScore := got.Tags[0].Count, 100; gotScore != wantScore {
+	if got.Tags[0].Count == nil {
+		t.Fatal("tag count is nil")
+	}
+
+	if gotScore, wantScore := *got.Tags[0].Count, 100; gotScore != wantScore {
 		t.Errorf("tag count = %d; want %d", gotScore, wantScore)
 	}
 }
@@ -111,8 +115,8 @@ func TestDecodeSnapshotReturnsErrorForInvalidMetadata(t *testing.T) {
 func TestSnapshotSuggestionsConvertsTags(t *testing.T) {
 	data := snapshot{
 		Tags: []snapshotTag{
-			{Name: "  javascript  ", Count: 100},
-			{Name: "go", Count: 90},
+			{Name: "  javascript  ", Count: intPointer(100)},
+			{Name: "go", Count: intPointer(90)},
 		},
 	}
 
@@ -138,11 +142,11 @@ func TestSnapshotSuggestionsReturnsIndexedError(t *testing.T) {
 	}{
 		{
 			name: "empty name",
-			tag:  snapshotTag{Name: "   ", Count: 100},
+			tag:  snapshotTag{Name: "   ", Count: intPointer(100)},
 		},
 		{
 			name: "negative count",
-			tag:  snapshotTag{Name: "go", Count: -1},
+			tag:  snapshotTag{Name: "go", Count: intPointer(-1)},
 		},
 	}
 
@@ -150,7 +154,7 @@ func TestSnapshotSuggestionsReturnsIndexedError(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			data := snapshot{
 				Tags: []snapshotTag{
-					{Name: "javascript", Count: 100},
+					{Name: "javascript", Count: intPointer(100)},
 					tt.tag,
 				},
 			}
@@ -237,5 +241,67 @@ func TestSnapshotToTrieIntegration(t *testing.T) {
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("Search() = %#v; want %#v", got, want)
+	}
+}
+
+func intPointer(value int) *int {
+	return &value
+}
+
+func TestSnapshotSuggestionsReturnsErrorForMissingCount(t *testing.T) {
+	data := snapshot{
+		Tags: []snapshotTag{
+			{Name: "go"},
+		},
+	}
+
+	_, err := data.suggestions()
+
+	if err == nil {
+		t.Fatal("suggestions() error = nil; want an error")
+	}
+
+	if !strings.Contains(err.Error(), "count is required") {
+		t.Errorf(
+			"suggestions() error = %q; want missing count message",
+			err,
+		)
+	}
+}
+
+func TestDecodeSnapshotRejectsTrailingContent(t *testing.T) {
+	validSnapshot := `{
+		"source": "https://api.stackexchange.com",
+		"attribution": "Stack Overflow data",
+		"generated_at": "2026-08-11T16:56:24Z",
+		"tags": [
+			{"name": "go", "count": 100}
+		]
+	}`
+
+	tests := []struct {
+		name     string
+		trailing string
+	}{
+		{
+			name:     "second JSON object",
+			trailing: `{"unexpected": true}`,
+		},
+		{
+			name:     "malformed trailing content",
+			trailing: `{invalid`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			input := validSnapshot + tt.trailing
+
+			_, err := decodeSnapshot(strings.NewReader(input))
+
+			if err == nil {
+				t.Fatal("decodeSnapshot() error = nil; want an error")
+			}
+		})
 	}
 }

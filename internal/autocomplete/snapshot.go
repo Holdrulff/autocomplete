@@ -12,7 +12,7 @@ import (
 
 type snapshotTag struct {
 	Name  string `json:"name"`
-	Count int    `json:"count"`
+	Count *int   `json:"count"`
 }
 
 type snapshot struct {
@@ -25,8 +25,26 @@ type snapshot struct {
 func decodeSnapshot(reader io.Reader) (snapshot, error) {
 	var data snapshot
 
-	if err := json.NewDecoder(reader).Decode(&data); err != nil {
+	decoder := json.NewDecoder(reader)
+
+	if err := decoder.Decode(&data); err != nil {
 		return snapshot{}, fmt.Errorf("decode snapshot: %w", err)
+	}
+
+	var trailing json.RawMessage
+
+	err := decoder.Decode(&trailing)
+	if err == nil {
+		return snapshot{}, errors.New(
+			"decode snapshot: unexpected content after JSON document",
+		)
+	}
+
+	if !errors.Is(err, io.EOF) {
+		return snapshot{}, fmt.Errorf(
+			"decode snapshot trailing content: %w",
+			err,
+		)
 	}
 
 	if err := data.validate(); err != nil {
@@ -60,7 +78,17 @@ func (s snapshot) suggestions() ([]Suggestion, error) {
 	suggestions := make([]Suggestion, 0, len(s.Tags))
 
 	for index, currentTag := range s.Tags {
-		suggestion, err := NewSuggestion(currentTag.Name, currentTag.Count)
+		if currentTag.Count == nil {
+			return nil, fmt.Errorf(
+				"tag at index %d: count is required",
+				index,
+			)
+		}
+
+		suggestion, err := NewSuggestion(
+			currentTag.Name,
+			*currentTag.Count,
+		)
 		if err != nil {
 			return nil, fmt.Errorf("tag at index %d: %w", index, err)
 		}
