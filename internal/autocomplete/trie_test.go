@@ -188,3 +188,51 @@ func TestTrieFindNodeReturnsNilForUnknownPrefix(t *testing.T) {
 		t.Errorf("findNode returned %#v for an unknows prefix; want nil", got)
 	}
 }
+
+func TestTrieSearchReturnsRankedSuggestions(t *testing.T) {
+	trie := NewTrie()
+
+	trie.Insert(Suggestion{Value: "reactjs", Score: 100})
+	trie.Insert(Suggestion{Value: "react-native", Score: 80})
+	trie.Insert(Suggestion{Value: "redux", Score: 90})
+
+	want := []Suggestion{
+		{Value: "reactjs", Score: 100},
+		{Value: "react-native", Score: 80},
+	}
+
+	got := trie.Search("reac")
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Search() = %#v; want %#v", got, want)
+	}
+}
+
+func TestTrieSearchReturnsEmptySliceForUnknownPrefix(t *testing.T) {
+	trie := NewTrie()
+	trie.Insert(Suggestion{Value: "reactjs", Score: 100})
+
+	got := trie.Search("vue")
+
+	if got == nil {
+		t.Fatal("Search() returned nil; want empty slice")
+	}
+
+	if len(got) != 0 {
+		t.Errorf("Search() returned %d suggestions; want 0", len(got))
+	}
+}
+
+func TestTrieSearchReturnsCopyOfCachedSuggestions(t *testing.T) {
+	trie := NewTrie()
+	trie.Insert(Suggestion{Value: "reactjs", Score: 100})
+
+	firstResult := trie.Search("reac")
+	firstResult[0].Value = "changed"
+
+	secondResult := trie.Search("reac")
+
+	if got, want := secondResult[0].Value, "reactjs"; got != want {
+		t.Errorf("Search() cached value = %q; want %q", got, want)
+	}
+}

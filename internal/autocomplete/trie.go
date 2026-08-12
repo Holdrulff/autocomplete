@@ -79,3 +79,15 @@ func (t *Trie) findNode(prefix string) *trieNode {
 
 	return currentNode
 }
+
+func (t *Trie) Search(prefix string) []Suggestion {
+	node := t.findNode(prefix)
+	if node == nil {
+		return []Suggestion{}
+	}
+
+	results := make([]Suggestion, len(node.suggestions))
+	copy(results, node.suggestions)
+
+	return results
+}
