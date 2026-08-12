@@ -28,7 +28,9 @@ func (t *Trie) Insert(suggestion Suggestion) {
 	currentNode := t.root
 	currentNode.addSuggestion(suggestion)
 
-	for _, character := range suggestion.Value {
+	normalizedValue := strings.ToLower(strings.TrimSpace(suggestion.Value))
+
+	for _, character := range normalizedValue {
 		childNode, exists := currentNode.children[character]
 
 		if !exists {

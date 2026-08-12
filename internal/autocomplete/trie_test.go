@@ -302,3 +302,24 @@ func TestTrieSearchReturnsEmptySliceForBlankPrefix(t *testing.T) {
 		})
 	}
 }
+
+func TestTrieInsertNormalizesSuggestionPath(t *testing.T) {
+	trie := NewTrie()
+
+	want := Suggestion{
+		Value: "ReactJS",
+		Score: 100,
+	}
+
+	trie.Insert(want)
+
+	got := trie.Search("reac")
+
+	if gotCount, wantCount := len(got), 1; gotCount != wantCount {
+		t.Fatalf("Search() returned %d suggestions; want %d", gotCount, wantCount)
+	}
+
+	if got[0] != want {
+		t.Errorf("Search() = %#v; want %#v", got[0], want)
+	}
+}
