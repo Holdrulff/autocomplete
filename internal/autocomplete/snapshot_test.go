@@ -1,7 +1,6 @@
 package autocomplete
 
 import (
-	"os"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -171,17 +170,6 @@ func TestSnapshotSuggestionsReturnsIndexedError(t *testing.T) {
 	}
 }
 
-func writeSnapshotTestFile(t *testing.T, content string) string {
-	t.Helper()
-
-	path := filepath.Join(t.TempDir(), "snapshot.json")
-
-	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
-		t.Fatalf("os.WriteFile() error = %v", err)
-	}
-
-	return path
-}
 func TestLoadCatalog(t *testing.T) {
 	path := writeSnapshotTestFile(t, `{
 		"source": "https://api.stackexchange.com",
@@ -232,7 +220,7 @@ func TestSnapshotToTrieIntegration(t *testing.T) {
 
 	trie := NewTrieFromCatalog(catalog)
 
-	got := trie.Search("java")
+	got := searchWithoutError(t, trie, "java")
 
 	want := []Suggestion{
 		{Value: "javascript", Score: 100},

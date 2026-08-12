@@ -1,8 +1,10 @@
 package autocomplete
 
 import (
+	"errors"
 	"reflect"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -201,7 +203,7 @@ func TestTrieSearchReturnsRankedSuggestions(t *testing.T) {
 		{Value: "react-native", Score: 80},
 	}
 
-	got := trie.Search("reac")
+	got := searchWithoutError(t, trie, "reac")
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("Search() = %#v; want %#v", got, want)
@@ -212,7 +214,7 @@ func TestTrieSearchReturnsEmptySliceForUnknownPrefix(t *testing.T) {
 	trie := NewTrie()
 	trie.Insert(Suggestion{Value: "reactjs", Score: 100})
 
-	got := trie.Search("vue")
+	got := searchWithoutError(t, trie, "vue")
 
 	if got == nil {
 		t.Fatal("Search() returned nil; want empty slice")
@@ -227,10 +229,10 @@ func TestTrieSearchReturnsCopyOfCachedSuggestions(t *testing.T) {
 	trie := NewTrie()
 	trie.Insert(Suggestion{Value: "reactjs", Score: 100})
 
-	firstResult := trie.Search("reac")
+	firstResult := searchWithoutError(t, trie, "reac")
 	firstResult[0].Value = "changed"
 
-	secondResult := trie.Search("reac")
+	secondResult := searchWithoutError(t, trie, "reac")
 
 	if got, want := secondResult[0].Value, "reactjs"; got != want {
 		t.Errorf("Search() cached value = %q; want %q", got, want)
@@ -261,7 +263,7 @@ func TestTrieSearchNormalizesPrefix(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := trie.Search(tt.prefix)
+			got := searchWithoutError(t, trie, tt.prefix)
 
 			if gotCount, wantCount := len(got), 1; gotCount != wantCount {
 				t.Errorf(
@@ -286,7 +288,7 @@ func TestTrieSearchReturnsEmptySliceForBlankPrefix(t *testing.T) {
 
 	for _, prefix := range tests {
 		t.Run(prefix, func(t *testing.T) {
-			got := trie.Search(prefix)
+			got := searchWithoutError(t, trie, prefix)
 
 			if got == nil {
 				t.Fatal("Search() returned nil; want empty slice")
@@ -313,7 +315,7 @@ func TestTrieInsertNormalizesSuggestionPath(t *testing.T) {
 
 	trie.Insert(want)
 
-	got := trie.Search("reac")
+	got := searchWithoutError(t, trie, "reac")
 
 	if gotCount, wantCount := len(got), 1; gotCount != wantCount {
 		t.Fatalf("Search() returned %d suggestions; want %d", gotCount, wantCount)
@@ -350,7 +352,7 @@ func TestTrieInsertReplacesDuplicateSuggestion(t *testing.T) {
 	trie.Insert(Suggestion{Value: "redux", Score: 90})
 	trie.Insert(Suggestion{Value: "ReactJS", Score: 100})
 
-	got := trie.Search("r")
+	got := searchWithoutError(t, trie, "r")
 
 	want := []Suggestion{
 		{Value: "ReactJS", Score: 100},
@@ -373,7 +375,7 @@ func TestTrieRanksEqualScoresCaseInsensitively(t *testing.T) {
 		{Value: "Redux", Score: 100},
 	}
 
-	got := trie.Search("r")
+	got := searchWithoutError(t, trie, "r")
 
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("Search() = %#v; want %#v", got, want)
@@ -389,7 +391,7 @@ func TestNewTrieFromCatalog(t *testing.T) {
 
 	trie := NewTrieFromCatalog(catalog)
 
-	got := trie.Search("java")
+	got := searchWithoutError(t, trie, "java")
 
 	want := []Suggestion{
 		{Value: "javascript", Score: 100},
@@ -399,4 +401,65 @@ func TestNewTrieFromCatalog(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("Search() = %#v; want %#v", got, want)
 	}
+}
+
+func TestTrieSearchRejectsPrefixLongerThanMaximum(t *testing.T) {
+	trie := NewTrie()
+	prefix := strings.Repeat("a", MaxPrefixLength+1)
+
+	results, err := trie.Search(prefix)
+
+	if !errors.Is(err, ErrPrefixTooLong) {
+		t.Fatalf("Search() error = %v; want %v", err, ErrPrefixTooLong)
+	}
+
+	if results != nil {
+		t.Errorf("Search() results = %#v; want nil", results)
+	}
+}
+
+func TestTrieSearchCountsUnicodeCharacters(t *testing.T) {
+	trie := NewTrie()
+
+	t.Run("accepts 64 Unicode characters", func(t *testing.T) {
+		prefix := strings.Repeat("á", MaxPrefixLength)
+
+		results, err := trie.Search(prefix)
+
+		if err != nil {
+			t.Fatalf("Search() error = %v; want nil", err)
+		}
+
+		if results == nil {
+			t.Fatal("Search() results = nil; want empty slice")
+		}
+	})
+
+	t.Run("rejects 65 Unicode characters", func(t *testing.T) {
+		prefix := strings.Repeat("á", MaxPrefixLength+1)
+
+		results, err := trie.Search(prefix)
+
+		if !errors.Is(err, ErrPrefixTooLong) {
+			t.Fatalf("Search() error = %v; want %v", err, ErrPrefixTooLong)
+		}
+
+		if results != nil {
+			t.Errorf("Search() results = %#v; want nil", results)
+		}
+	})
+
+	t.Run("ignores surrounding spaces when counting characters", func(t *testing.T) {
+		prefix := "   " + strings.Repeat("a", MaxPrefixLength) + "   "
+
+		results, err := trie.Search(prefix)
+
+		if err != nil {
+			t.Fatalf("Search() error = %v; want nil", err)
+		}
+
+		if results == nil {
+			t.Fatal("Search() results = nil; want empty slice")
+		}
+	})
 }
