@@ -64,3 +64,18 @@ func (n *trieNode) addSuggestion(suggestion Suggestion) {
 		n.suggestions = n.suggestions[:maxSuggestions]
 	}
 }
+
+func (t *Trie) findNode(prefix string) *trieNode {
+	currentNode := t.root
+
+	for _, character := range prefix {
+		childNode, exists := currentNode.children[character]
+		if !exists {
+			return nil
+		}
+
+		currentNode = childNode
+	}
+
+	return currentNode
+}

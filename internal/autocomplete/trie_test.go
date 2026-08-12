@@ -164,3 +164,27 @@ func TestTrieLimitsCachedSuggestionsToTwenty(t *testing.T) {
 		}
 	}
 }
+
+func TestTrieFindNodeReturnsPrefixNode(t *testing.T) {
+	trie := NewTrie()
+	trie.Insert(Suggestion{Value: "reactjs", Score: 100})
+
+	got := trie.findNode("reac")
+
+	if got == nil {
+		t.Fatal("findNode returned nil for an existing prefix")
+	}
+
+	if gotCount, wantCount := len(got.suggestions), 1; gotCount != wantCount {
+		t.Errorf("cached suggestions = %d; want %d", gotCount, wantCount)
+	}
+}
+
+func TestTrieFindNodeReturnsNilForUnknownPrefix(t *testing.T) {
+	trie := NewTrie()
+	trie.Insert(Suggestion{Value: "reactjs", Score: 100})
+
+	if got := trie.findNode("vue"); got != nil {
+		t.Errorf("findNode returned %#v for an unknows prefix; want nil", got)
+	}
+}
