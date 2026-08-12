@@ -1,6 +1,10 @@
 package autocomplete
 
-import "testing"
+import (
+	"reflect"
+	"strconv"
+	"testing"
+)
 
 func TestNewTrie(t *testing.T) {
 	trie := NewTrie()
@@ -108,6 +112,55 @@ func TestTrieInsertCachesSuggestionForEveryPrefix(t *testing.T) {
 
 		if got := node.suggestions[0]; got != want {
 			t.Fatalf("cached suggestion = %#v; want %#v", got, want)
+		}
+	}
+}
+
+func TestTrieCachesSuggestionByScoreThenName(t *testing.T) {
+	trie := NewTrie()
+
+	trie.Insert(Suggestion{Value: "redux", Score: 100})
+	trie.Insert(Suggestion{Value: "react-native", Score: 90})
+	trie.Insert(Suggestion{Value: "reactjs", Score: 100})
+
+	want := []Suggestion{
+		{Value: "reactjs", Score: 100},
+		{Value: "redux", Score: 100},
+		{Value: "react-native", Score: 90},
+	}
+
+	if got := trie.root.suggestions; !reflect.DeepEqual(got, want) {
+		t.Errorf("root suggestions = %#v; want %#v", got, want)
+	}
+}
+
+func TestTrieLimitsCachedSuggestionsToTwenty(t *testing.T) {
+	trie := NewTrie()
+
+	for score := 1; score <= 21; score++ {
+		trie.Insert(Suggestion{
+			Value: "technology-" + strconv.Itoa(score),
+			Score: score,
+		})
+	}
+
+	got := trie.root.suggestions
+
+	if gotCount, wantCount := len(got), 20; gotCount != wantCount {
+		t.Fatalf("cached suggestions = %d; want %d", gotCount, wantCount)
+	}
+
+	if gotScore, wantScore := got[0].Score, 21; gotScore != wantScore {
+		t.Errorf("first suggestion score = %d, want %d", gotScore, wantScore)
+	}
+
+	if gotScore, wantScore := got[19].Score, 2; gotScore != wantScore {
+		t.Errorf("lastsuggestion score = %d, want %d", gotScore, wantScore)
+	}
+
+	for _, suggestion := range got {
+		if suggestion.Score == 1 {
+			t.Error("cache contains the lowest-ranked suggestion")
 		}
 	}
 }
