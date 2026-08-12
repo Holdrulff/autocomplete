@@ -85,6 +85,10 @@ func (t *Trie) findNode(prefix string) *trieNode {
 
 func (t *Trie) Search(prefix string) []Suggestion {
 	prefix = strings.ToLower(strings.TrimSpace(prefix))
+	if prefix == "" {
+		return []Suggestion{}
+	}
+
 	node := t.findNode(prefix)
 	if node == nil {
 		return []Suggestion{}

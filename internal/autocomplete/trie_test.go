@@ -274,3 +274,31 @@ func TestTrieSearchNormalizesPrefix(t *testing.T) {
 		})
 	}
 }
+
+func TestTrieSearchReturnsEmptySliceForBlankPrefix(t *testing.T) {
+	trie := NewTrie()
+	trie.Insert(Suggestion{Value: "reactjs", Score: 100})
+
+	tests := []string{
+		"",
+		"   ",
+	}
+
+	for _, prefix := range tests {
+		t.Run(prefix, func(t *testing.T) {
+			got := trie.Search(prefix)
+
+			if got == nil {
+				t.Fatal("Search() returned nil; want empty slice")
+			}
+
+			if len(got) != 0 {
+				t.Errorf(
+					"Search(%q) returned %d suggestions; want 0",
+					prefix,
+					len(got),
+				)
+			}
+		})
+	}
+}
