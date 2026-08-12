@@ -323,3 +323,59 @@ func TestTrieInsertNormalizesSuggestionPath(t *testing.T) {
 		t.Errorf("Search() = %#v; want %#v", got[0], want)
 	}
 }
+
+func TestTrieInsertIgnoresBlankSuggestion(t *testing.T) {
+	trie := NewTrie()
+
+	trie.Insert(Suggestion{Value: "", Score: 100})
+	trie.Insert(Suggestion{Value: "   ", Score: 90})
+
+	if got := len(trie.root.suggestions); got != 0 {
+		t.Errorf("root cached suggestions = %d; want 0", got)
+	}
+
+	if got := len(trie.root.children); got != 0 {
+		t.Errorf("root children = %d; want 0", got)
+	}
+
+	if trie.root.isTerminal {
+		t.Error("root became terminal after inserting blank suggestions")
+	}
+}
+
+func TestTrieInsertReplacesDuplicateSuggestion(t *testing.T) {
+	trie := NewTrie()
+
+	trie.Insert(Suggestion{Value: "reactjs", Score: 80})
+	trie.Insert(Suggestion{Value: "redux", Score: 90})
+	trie.Insert(Suggestion{Value: "ReactJS", Score: 100})
+
+	got := trie.Search("r")
+
+	want := []Suggestion{
+		{Value: "ReactJS", Score: 100},
+		{Value: "redux", Score: 90},
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Search() = %#v; want %#v", got, want)
+	}
+}
+
+func TestTrieRanksEqualScoresCaseInsensitively(t *testing.T) {
+	trie := NewTrie()
+
+	trie.Insert(Suggestion{Value: "Redux", Score: 100})
+	trie.Insert(Suggestion{Value: "reactjs", Score: 100})
+
+	want := []Suggestion{
+		{Value: "reactjs", Score: 100},
+		{Value: "Redux", Score: 100},
+	}
+
+	got := trie.Search("r")
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Search() = %#v; want %#v", got, want)
+	}
+}

@@ -25,10 +25,15 @@ func NewTrie() *Trie {
 }
 
 func (t *Trie) Insert(suggestion Suggestion) {
-	currentNode := t.root
-	currentNode.addSuggestion(suggestion)
 
 	normalizedValue := strings.ToLower(strings.TrimSpace(suggestion.Value))
+
+	if normalizedValue == "" {
+		return
+	}
+
+	currentNode := t.root
+	currentNode.addSuggestion(suggestion)
 
 	for _, character := range normalizedValue {
 		childNode, exists := currentNode.children[character]
@@ -52,14 +57,38 @@ func (t *Trie) Insert(suggestion Suggestion) {
 const maxSuggestions = 20
 
 func (n *trieNode) addSuggestion(suggestion Suggestion) {
-	n.suggestions = append(n.suggestions, suggestion)
+	normalizedValue := strings.ToLower(strings.TrimSpace(suggestion.Value))
+	replaced := false
+
+	for index, existingSuggestion := range n.suggestions {
+		existingValue := strings.ToLower(
+			strings.TrimSpace(existingSuggestion.Value),
+		)
+
+		if existingValue == normalizedValue {
+			n.suggestions[index] = suggestion
+			replaced = true
+			break
+		}
+	}
+
+	if !replaced {
+		n.suggestions = append(n.suggestions, suggestion)
+	}
 
 	sort.Slice(n.suggestions, func(i, j int) bool {
 		left := n.suggestions[i]
 		right := n.suggestions[j]
 
 		if left.Score == right.Score {
-			return left.Value < right.Value
+			leftValue := strings.ToLower(strings.TrimSpace(left.Value))
+			rightValue := strings.ToLower(strings.TrimSpace(right.Value))
+
+			if leftValue == rightValue {
+				return left.Value < right.Value
+			}
+
+			return leftValue < rightValue
 		}
 
 		return left.Score > right.Score
