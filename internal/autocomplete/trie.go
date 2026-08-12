@@ -1,9 +1,15 @@
 package autocomplete
 
 import (
+	"errors"
 	"sort"
 	"strings"
+	"unicode/utf8"
 )
+
+const MaxPrefixLength = 64
+
+var ErrPrefixTooLong = errors.New("prefix exceeds maximum length")
 
 type trieNode struct {
 	children    map[rune]*trieNode
@@ -114,21 +120,26 @@ func (t *Trie) findNode(prefix string) *trieNode {
 	return currentNode
 }
 
-func (t *Trie) Search(prefix string) []Suggestion {
+func (t *Trie) Search(prefix string) ([]Suggestion, error) {
 	prefix = strings.ToLower(strings.TrimSpace(prefix))
+
+	if utf8.RuneCountInString(prefix) > MaxPrefixLength {
+		return nil, ErrPrefixTooLong
+	}
+
 	if prefix == "" {
-		return []Suggestion{}
+		return []Suggestion{}, nil
 	}
 
 	node := t.findNode(prefix)
 	if node == nil {
-		return []Suggestion{}
+		return []Suggestion{}, nil
 	}
 
 	results := make([]Suggestion, len(node.suggestions))
 	copy(results, node.suggestions)
 
-	return results
+	return results, nil
 }
 
 func NewTrieFromCatalog(catalog Catalog) *Trie {
