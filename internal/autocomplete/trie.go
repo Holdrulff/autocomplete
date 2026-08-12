@@ -1,6 +1,9 @@
 package autocomplete
 
-import "sort"
+import (
+	"sort"
+	"strings"
+)
 
 type trieNode struct {
 	children    map[rune]*trieNode
@@ -81,6 +84,7 @@ func (t *Trie) findNode(prefix string) *trieNode {
 }
 
 func (t *Trie) Search(prefix string) []Suggestion {
+	prefix = strings.ToLower(strings.TrimSpace(prefix))
 	node := t.findNode(prefix)
 	if node == nil {
 		return []Suggestion{}

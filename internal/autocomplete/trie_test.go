@@ -236,3 +236,41 @@ func TestTrieSearchReturnsCopyOfCachedSuggestions(t *testing.T) {
 		t.Errorf("Search() cached value = %q; want %q", got, want)
 	}
 }
+
+func TestTrieSearchNormalizesPrefix(t *testing.T) {
+	trie := NewTrie()
+	trie.Insert(Suggestion{Value: "reactjs", Score: 100})
+
+	tests := []struct {
+		name   string
+		prefix string
+	}{
+		{
+			name:   "uppercase",
+			prefix: "REAC",
+		},
+		{
+			name:   "surrounding spaces",
+			prefix: "  reac  ",
+		},
+		{
+			name:   "uppercase and surrounding spaces",
+			prefix: "  REAC  ",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := trie.Search(tt.prefix)
+
+			if gotCount, wantCount := len(got), 1; gotCount != wantCount {
+				t.Errorf(
+					"Search(%q) returned %d suggestions; want %d",
+					tt.prefix,
+					gotCount,
+					wantCount,
+				)
+			}
+		})
+	}
+}
