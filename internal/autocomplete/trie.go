@@ -130,3 +130,13 @@ func (t *Trie) Search(prefix string) []Suggestion {
 
 	return results
 }
+
+func NewTrieFromCatalog(catalog Catalog) *Trie {
+	trie := NewTrie()
+
+	for _, suggestion := range catalog.Suggestions() {
+		trie.Insert(suggestion)
+	}
+
+	return trie
+}

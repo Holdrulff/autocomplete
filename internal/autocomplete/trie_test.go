@@ -379,3 +379,24 @@ func TestTrieRanksEqualScoresCaseInsensitively(t *testing.T) {
 		t.Errorf("Search() = %#v; want %#v", got, want)
 	}
 }
+
+func TestNewTrieFromCatalog(t *testing.T) {
+	catalog := NewCatalog([]Suggestion{
+		{Value: "javascript", Score: 100},
+		{Value: "java", Score: 90},
+		{Value: "python", Score: 80},
+	})
+
+	trie := NewTrieFromCatalog(catalog)
+
+	got := trie.Search("java")
+
+	want := []Suggestion{
+		{Value: "javascript", Score: 100},
+		{Value: "java", Score: 90},
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Search() = %#v; want %#v", got, want)
+	}
+}

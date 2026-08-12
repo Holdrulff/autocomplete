@@ -16,3 +16,10 @@ func NewCatalog(suggestions []Suggestion) Catalog {
 func (c Catalog) Len() int {
 	return len(c.suggestions)
 }
+
+func (c Catalog) Suggestions() []Suggestion {
+	copied := make([]Suggestion, len(c.suggestions))
+	copy(copied, c.suggestions)
+
+	return copied
+}
