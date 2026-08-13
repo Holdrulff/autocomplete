@@ -28,3 +28,14 @@ func searchWithoutError(t *testing.T, trie *Trie, prefix string) []Suggestion {
 
 	return results
 }
+
+func newServiceWithoutError(t *testing.T, trie *Trie) *Service {
+	t.Helper()
+
+	service, err := NewService(trie)
+	if err != nil {
+		t.Fatalf("NewService() error = %v; want nil", err)
+	}
+
+	return service
+}
