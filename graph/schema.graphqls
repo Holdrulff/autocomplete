@@ -1,0 +1,8 @@
+type Suggestion {
+    value: String!
+    score: Int!
+}
+
+type Query {
+    autocomplete(prefix:String!): [Suggestion!]!
+}
