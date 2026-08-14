@@ -7,14 +7,13 @@ package graph
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/Holdrulff/autocomplete/internal/autocomplete"
 )
 
 // Autocomplete is the resolver for the autocomplete field.
 func (r *queryResolver) Autocomplete(ctx context.Context, prefix string) ([]autocomplete.Suggestion, error) {
-	panic(fmt.Errorf("not implemented: Autocomplete - autocomplete"))
+	return r.service.Search(prefix)
 }
 
 // Query returns QueryResolver implementation.
