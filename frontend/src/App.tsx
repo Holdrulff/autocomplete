@@ -1,121 +1,103 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
 import './App.css'
 
+type Suggestion = {
+  value: string
+  score: number
+}
+
+const previewSuggestions: Suggestion[] = [
+  { value: 'javascript', score: 2_522_113 },
+  { value: 'java', score: 1_914_698 },
+  { value: 'javafx', score: 38_812 },
+  { value: 'reactjs', score: 473_924 },
+  { value: 'python', score: 2_205_065 },
+]
+
+const scoreFormatter = new Intl.NumberFormat('en-US')
+
 function App() {
-  const [count, setCount] = useState(0)
+  const [prefix, setPrefix] = useState('')
+  const normalizedPrefix = prefix.trim().toLowerCase()
+
+  const suggestions =
+    normalizedPrefix === ''
+      ? []
+      : previewSuggestions.filter((suggestion) =>
+          suggestion.value.startsWith(normalizedPrefix),
+        )
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
+    <main className="app-shell">
+      <section
+        className="search-card"
+        aria-labelledby="search-title"
+      >
+        <p className="eyebrow">Autocomplete</p>
+
+        <h1 id="search-title">
+          Find a technology
+        </h1>
+
+        <p className="search-description">
+          Start typing to explore popular technology tags from Stack Overflow.
+        </p>
+
+        <div className="search-field">
+          <label htmlFor="autocomplete-input">
+            Technology
+          </label>
+
+          <input
+            id="autocomplete-input"
+            name="autocomplete"
+            type="search"
+            placeholder="e.g., java, react, python"
+            autoComplete="off"
+            value={prefix}
+            onChange={(event) => setPrefix(event.target.value)}
+            aria-describedby="search-help"
+          />
         </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+        <p
+          id="search-help"
+          className="search-hint"
+          aria-live="polite"
         >
-          Count is {count}
-        </button>
-      </section>
+          {normalizedPrefix === ''
+            ? 'Type at least one character.'
+            : suggestions.length === 0
+              ? 'No suggestions found.'
+              : `${suggestions.length} ${
+                suggestions.length === 1 ? 'suggestion' : 'suggestions'
+              } found.`}
+        </p>
+        {suggestions.length > 0 && (
+          <ul
+            className="suggestion-list"
+            aria-label="Autocomplete suggestions"
+          >
+            {suggestions.map((suggestion) => (
+              <li key={suggestion.value}>
+                <button
+                  type="button"
+                  className="suggestion-item"
+                  onClick={() => setPrefix(suggestion.value)}
+                >
+                  <span className="suggestion-value">
+                    {suggestion.value}
+                  </span>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
+                  <span className="suggestion-score">
+                    {scoreFormatter.format(suggestion.score)} questions
+                  </span>
+                </button>
+              </li>
+            ))}
           </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
+        )}
       </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </main>
   )
 }
 
