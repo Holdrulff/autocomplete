@@ -1,44 +1,44 @@
 # Autocomplete
 
-Aplicação de autocomplete para tecnologias baseada nas tags mais populares do Stack Overflow.
+A technology autocomplete application based on the most popular Stack Overflow tags.
 
-O backend carrega um snapshot das tags em uma trie, busca termos por prefixo e devolve as sugestões ordenadas por popularidade. O frontend oferece busca com debounce, navegação por teclado e temas claro e escuro.
+The backend loads a snapshot of the tags into a trie, searches for terms by prefix, and returns suggestions ordered by popularity. The frontend provides debounced search, keyboard navigation, and light and dark themes.
 
-## Tecnologias
+## Technologies
 
 - Go
-- GraphQL com gqlgen
-- React, TypeScript e Vite
+- GraphQL with gqlgen
+- React, TypeScript, and Vite
 - Nginx
 - Docker Compose
 
-## Como executar
+## Running the application
 
-Pré-requisito: Docker com Docker Compose.
+Prerequisite: Docker with Docker Compose.
 
-Na raiz do projeto, execute:
+From the project root, run:
 
 ```bash
 docker compose up --build
 ```
 
-Acesse a aplicação em:
+Open the application at:
 
 ```text
 http://localhost:8080
 ```
 
-Para encerrar:
+To stop the application:
 
 ```bash
 docker compose down
 ```
 
-## API GraphQL
+## GraphQL API
 
-O endpoint está disponível em `POST /query`.
+The endpoint is available at `POST /query`.
 
-Exemplo:
+Example:
 
 ```graphql
 query {
@@ -49,34 +49,34 @@ query {
 }
 ```
 
-## Desenvolvimento
+## Development
 
-Execute os testes e as verificações do backend:
+Run the backend tests and checks:
 
 ```bash
 go test ./...
 go vet ./...
 ```
 
-Execute o frontend localmente:
+Run the frontend locally:
 
 ```bash
 npm --prefix ./frontend install
 npm --prefix ./frontend run dev
 ```
 
-Em outro terminal, inicie o backend:
+In another terminal, start the backend:
 
 ```bash
 go run ./cmd/server
 ```
 
-O Vite disponibiliza o frontend em `http://localhost:5173` e encaminha `/query` para o backend local.
+Vite serves the frontend at `http://localhost:5173` and proxies `/query` to the local backend.
 
-## Arquitetura
+## Architecture
 
 ```text
-React → Nginx → GraphQL → serviço de autocomplete → trie → snapshot de tags
+React → Nginx → GraphQL → autocomplete service → trie → tag snapshot
 ```
 
-Os dados foram obtidos pela Stack Exchange API. As contribuições do Stack Overflow são licenciadas sob CC BY-SA.
+The data was obtained through the Stack Exchange API. Stack Overflow user contributions are licensed under CC BY-SA.
