@@ -41,8 +41,16 @@ func buildHandler(snapshotPath string) (http.Handler, error) {
 
 	mux := http.NewServeMux()
 	mux.Handle("/query", graphqlHandler)
+	mux.HandleFunc("GET /health", healthHandler)
 
 	return mux, nil
+}
+
+func healthHandler(writer http.ResponseWriter, _ *http.Request) {
+	writer.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	writer.WriteHeader(http.StatusOK)
+
+	_, _ = fmt.Fprintln(writer, "ok")
 }
 
 func main() {
