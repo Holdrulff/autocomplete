@@ -1,101 +1,95 @@
-import { useState } from 'react'
+import { EmptyState } from './components/EmptyState'
+import { SearchInput } from './components/SearchInput'
+import { StatusMessage } from './components/StatusMessage'
+import { SuggestionList } from './components/SuggestionList'
+import { ThemeToggle } from './components/ThemeToggle'
+import { useAutocomplete } from './hooks/useAutocomplete'
+import { useComboboxNavigation } from './hooks/useComboboxNavigation'
 import './App.css'
 
-type Suggestion = {
-  value: string
-  score: number
-}
-
-const previewSuggestions: Suggestion[] = [
-  { value: 'javascript', score: 2_522_113 },
-  { value: 'java', score: 1_914_698 },
-  { value: 'javafx', score: 38_812 },
-  { value: 'reactjs', score: 473_924 },
-  { value: 'python', score: 2_205_065 },
-]
-
-const scoreFormatter = new Intl.NumberFormat('en-US')
+const LISTBOX_ID = 'suggestion-listbox'
+const STATUS_ID = 'search-help'
 
 function App() {
-  const [prefix, setPrefix] = useState('')
-  const normalizedPrefix = prefix.trim().toLowerCase()
+  const {
+    prefix,
+    setPrefix,
+    selectPrefix,
+    isSearchEnabled,
+    normalizedPrefix,
+    suggestions,
+    isLoading,
+    error,
+  } = useAutocomplete()
 
-  const suggestions =
-    normalizedPrefix === ''
-      ? []
-      : previewSuggestions.filter((suggestion) =>
-          suggestion.value.startsWith(normalizedPrefix),
-        )
+  const {
+    highlightedIndex,
+    isOpen,
+    activeDescendantId,
+    getOptionId,
+    handleInputChange,
+    selectSuggestion,
+    handleKeyDown,
+    setHighlightedIndex,
+  } = useComboboxNavigation(suggestions, setPrefix, selectPrefix)
+
+  const showEmptyState =
+    isSearchEnabled &&
+    normalizedPrefix !== '' &&
+    !isLoading &&
+    !error &&
+    suggestions.length === 0
+  const showLoadingPopup =
+    isSearchEnabled && isLoading && suggestions.length === 0
+  const isPopupVisible = isOpen || showLoadingPopup
 
   return (
     <main className="app-shell">
-      <section
-        className="search-card"
-        aria-labelledby="search-title"
-      >
-        <p className="eyebrow">Autocomplete</p>
+      <section className="search-card" aria-labelledby="search-title">
+        <div className="search-header">
+          <div>
+            <p className="eyebrow">Autocomplete</p>
+            <h1 id="search-title">Find a technology</h1>
+          </div>
 
-        <h1 id="search-title">
-          Find a technology
-        </h1>
+          <ThemeToggle />
+        </div>
 
         <p className="search-description">
           Start typing to explore popular technology tags from Stack Overflow.
         </p>
 
-        <div className="search-field">
-          <label htmlFor="autocomplete-input">
-            Technology
-          </label>
+        <SearchInput
+          value={prefix}
+          onChange={handleInputChange}
+          onKeyDown={handleKeyDown}
+          listboxId={LISTBOX_ID}
+          activeDescendantId={activeDescendantId}
+          isExpanded={isPopupVisible}
+          describedById={STATUS_ID}
+        />
 
-          <input
-            id="autocomplete-input"
-            name="autocomplete"
-            type="search"
-            placeholder="e.g., java, react, python"
-            autoComplete="off"
-            value={prefix}
-            onChange={(event) => setPrefix(event.target.value)}
-            aria-describedby="search-help"
+        <StatusMessage
+          id={STATUS_ID}
+          normalizedPrefix={normalizedPrefix}
+          isLoading={isLoading}
+          error={error}
+          resultCount={suggestions.length}
+        />
+
+        {isPopupVisible && (
+          <SuggestionList
+            suggestions={suggestions}
+            isLoading={isLoading}
+            highlightedIndex={highlightedIndex}
+            listboxId={LISTBOX_ID}
+            getOptionId={getOptionId}
+            onSelect={selectSuggestion}
+            onHighlight={setHighlightedIndex}
           />
-        </div>
-        <p
-          id="search-help"
-          className="search-hint"
-          aria-live="polite"
-        >
-          {normalizedPrefix === ''
-            ? 'Type at least one character.'
-            : suggestions.length === 0
-              ? 'No suggestions found.'
-              : `${suggestions.length} ${
-                suggestions.length === 1 ? 'suggestion' : 'suggestions'
-              } found.`}
-        </p>
-        {suggestions.length > 0 && (
-          <ul
-            className="suggestion-list"
-            aria-label="Autocomplete suggestions"
-          >
-            {suggestions.map((suggestion) => (
-              <li key={suggestion.value}>
-                <button
-                  type="button"
-                  className="suggestion-item"
-                  onClick={() => setPrefix(suggestion.value)}
-                >
-                  <span className="suggestion-value">
-                    {suggestion.value}
-                  </span>
-
-                  <span className="suggestion-score">
-                    {scoreFormatter.format(suggestion.score)} questions
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
         )}
+
+        {showEmptyState && <EmptyState normalizedPrefix={normalizedPrefix} />}
       </section>
     </main>
   )

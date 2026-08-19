@@ -2,147 +2,73 @@
   display: grid;
   min-height: 100vh;
   place-items: center;
-  padding: 24px;
+  padding: var(--space-6);
   background:
-    radial-gradient(circle at 15% 15%, #dbeafe 0, transparent 34%),
-    radial-gradient(circle at 85% 80%, #ede9fe 0, transparent 32%),
-    #f8fafc;
+    radial-gradient(circle at 15% 15%, var(--color-bg-blob-1) 0, transparent 34%),
+    radial-gradient(circle at 85% 80%, var(--color-bg-blob-2) 0, transparent 32%),
+    var(--color-bg);
+  transition: background-color var(--duration-slow) var(--ease-standard);
 }
 
 .search-card {
   width: min(100%, 680px);
   padding: clamp(28px, 6vw, 56px);
-  border: 1px solid #e2e8f0;
-  border-radius: 24px;
-  background: rgb(255 255 255 / 92%);
-  box-shadow: 0 24px 70px rgb(15 23 42 / 12%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  transition:
+    background-color var(--duration-slow) var(--ease-standard),
+    border-color var(--duration-slow) var(--ease-standard),
+    box-shadow var(--duration-slow) var(--ease-standard);
+}
+
+.search-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
 }
 
 .eyebrow {
-  margin: 0 0 12px;
-  color: #4f46e5;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  margin: 0 0 var(--space-3);
+  color: var(--color-accent);
+  font-size: var(--text-xs);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-wide);
   text-transform: uppercase;
 }
 
 .search-card h1 {
   margin: 0;
-  color: #0f172a;
-  font-size: clamp(2rem, 7vw, 3.5rem);
-  line-height: 1.05;
-  letter-spacing: -0.04em;
+  color: var(--color-text-primary);
+  font-size: var(--text-display);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-tight);
 }
 
 .search-description {
   max-width: 52ch;
-  margin: 20px 0 32px;
-  color: #64748b;
-  font-size: 1rem;
-  line-height: 1.7;
+  margin: var(--space-5) 0 var(--space-8);
+  color: var(--color-text-secondary);
+  font-size: var(--text-base);
+  line-height: var(--line-height-relaxed);
 }
 
-.search-field {
-  display: grid;
-  gap: 10px;
-}
-
-.search-field label {
-  color: #334155;
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-
-.search-field input {
-  width: 100%;
-  min-height: 56px;
-  padding: 0 18px;
-  border: 1px solid #cbd5e1;
-  border-radius: 14px;
-  outline: none;
-  background: #ffffff;
-  color: #0f172a;
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease;
-}
-
-.search-field input::placeholder {
-  color: #94a3b8;
-}
-
-.search-field input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 4px rgb(99 102 241 / 16%);
-}
-
-.search-hint {
-  min-height: 24px;
-  margin: 12px 0 0;
-  color: #64748b;
-  font-size: 0.875rem;
-}
-
-.suggestion-list {
-  display: grid;
-  gap: 4px;
-  margin: 16px 0 0;
-  padding: 8px;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  background: #ffffff;
-  list-style: none;
-}
-
-.suggestion-item {
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: #0f172a;
-  text-align: left;
-  cursor: pointer;
-}
-
-.suggestion-item:hover,
-.suggestion-item:focus-visible {
-  outline: none;
-  background: #eef2ff;
-}
-
-.suggestion-value {
-  overflow: hidden;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.suggestion-score {
-  flex-shrink: 0;
-  color: #64748b;
-  font-size: 0.75rem;
+@media (max-width: 768px) {
+  .search-header {
+    flex-wrap: wrap;
+  }
 }
 
 @media (max-width: 480px) {
   .app-shell {
     align-items: start;
-    padding: 16px;
+    padding: var(--space-4);
   }
 
   .search-card {
-    margin-top: 32px;
-    border-radius: 18px;
-  }
-
-  .suggestion-item {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 4px;
+    margin-top: var(--space-8);
+    border-radius: var(--radius-lg);
   }
 }
