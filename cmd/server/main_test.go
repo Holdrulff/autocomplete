@@ -99,3 +99,31 @@ func TestBuildHandlerReturnsErrorForMissingSnapshot(t *testing.T) {
 		)
 	}
 }
+
+func TestHealthHandlerReturnsOK(t *testing.T) {
+	request := httptest.NewRequest(
+		http.MethodGet,
+		"/health",
+		nil,
+	)
+
+	responseRecorder := httptest.NewRecorder()
+
+	healthHandler(responseRecorder, request)
+
+	if responseRecorder.Code != http.StatusOK {
+		t.Errorf(
+			"status code = %d; want %d",
+			responseRecorder.Code,
+			http.StatusOK,
+		)
+	}
+
+	if responseRecorder.Body.String() != "ok\n" {
+		t.Errorf(
+			"response body = %q; want %q",
+			responseRecorder.Body.String(),
+			"ok\n",
+		)
+	}
+}
