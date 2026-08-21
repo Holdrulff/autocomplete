@@ -176,7 +176,7 @@ func main() {
 	allTags = normalizeAndDeduplicate(allTags)
 
 	fmt.Printf(
-		"\nTags únicas: %d; duplicadas removidas: %d\n",
+		"\nUnique tags: %d; removed dups: %d\n",
 		len(allTags),
 		collectedCount-len(allTags),
 	)
@@ -193,11 +193,11 @@ func main() {
 	})
 
 	if err := writeSnapshot(snapshotPath, allTags); err != nil {
-		fmt.Fprintln(os.Stderr, "erro ao salvar snapshot:", err)
+		fmt.Fprintln(os.Stderr, "error saving snapshot:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("Snapshot salvo em:", snapshotPath)
+	fmt.Println("Snapshot stored:", snapshotPath)
 
 	previewCount := 20
 
